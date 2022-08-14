@@ -7,8 +7,8 @@ wwidth = 500
 wheight = 500
 window = pygame.display.set_mode((wwidth, wheight))
 #Create all the necessary for the grid
-col = 50
-row = 50
+col = 25
+row = 25
 bwidth = wwidth // col
 bheight = wheight // row
 grid = []
@@ -58,17 +58,18 @@ for i in range(col):
   for j in range(row):
     grid[i][j].set_neighbours()
 
-start_box = grid[0][0]
-start_box.start = True
+#start_box = grid[0][0]
+#start_box.start = True
 #put the start_box into the queue
-queue.append(start_box)
-start_box.visited = True
+#queue.append(start_box)
+#start_box.visited = True
 #Specify the main function
 def main():
   begin_search = False
   end_box_set = False
   end_box  = None
   searching = True
+  start_box_set = False
   while True:
     for event in pygame.event.get():
       #If user wants to exit
@@ -76,24 +77,30 @@ def main():
         pygame.quit()
         sys.exit
       #Mouse controls for the wall
-      elif event.type == pygame.MOUSEMOTION:
-        x = pygame.mouse.get_pos()[0]
-        y = pygame.mouse.get_pos()[1]
-        # Draw the wall
-        if pygame.mouse.get_pressed()[0]:
+      elif event.type == pygame.MOUSEBUTTONDOWN:
+        if event.button == 1 and not start_box_set:
           i = x // bwidth
           j = y // bheight
-          grid[i][j].obstacle = True
-        #Draw the end of the path
-        if event.buttons[2] and not end_box_set:
+          start_box = grid[i][j]
+          start_box.start = True
+          queue.append(start_box)
+          start_box.visited = True
+          start_box_set = True
+        elif event.button == 3 and not end_box_set:
           i = x // bwidth
           j = y // bheight
           end_box = grid[i][j]
           end_box.end = True
           end_box_set = True
-      #If user put the end of the path, start the algorithm
-      if event.type == pygame.KEYDOWN and end_box_set:
-        begin_search = True
+          begin_search = True
+      elif event.type == pygame.MOUSEMOTION:
+        x = pygame.mouse.get_pos()[0]
+        y = pygame.mouse.get_pos()[1]
+        # Draw the wall
+        if pygame.mouse.get_pressed()[0] and start_box_set:
+          i = x // bwidth
+          j = y // bheight
+          grid[i][j].obstacle = True
     if begin_search:
       if len(queue) > 0 and searching:
         current_box = queue.pop(0)
