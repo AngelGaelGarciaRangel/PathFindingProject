@@ -76,7 +76,6 @@ for i in range(col):
     array.append(Box(i, j))
   grid.append(array)
 #Set the neighbours for all the boxes
-
 #Specify the main function
 def main():
   begin_search = False
@@ -99,6 +98,7 @@ def main():
           start_box.start = True
           start_box.visited = True
           start_box_set = True
+          start_box.g_score = 0
         elif event.button == 3 and not end_box_set:
           i = x // bwidth
           j = y // bheight
@@ -106,6 +106,13 @@ def main():
           end_box.end = True
           end_box_set = True
           begin_search = True
+          start_box.f_score = calculateH(start_box, end_box)
+          queue.append((start_box, start_box.f_score))
+          start_box.queue = True
+          setObjects.append(start_box)
+          for i in range(col):
+            for j in range(row):
+              grid[i][j].set_neighbours()
       elif event.type == pygame.MOUSEMOTION:
         x = pygame.mouse.get_pos()[0]
         y = pygame.mouse.get_pos()[1]
@@ -115,13 +122,6 @@ def main():
           j = y // bheight
           grid[i][j].obstacle = True
     if begin_search:
-      for i in range(col):
-        for j in range(row):
-          grid[i][j].set_neighbours()
-      start_box.g_score = 0
-      start_box.f_score = calculateH(start_box, end_box)
-      queue.append((start_box, start_box.f_score))
-      setObjects.append(start_box)
       if len(queue) > 0 and searching:
         current_box = priorityQueue(queue)
         current_box[0].visited = True
@@ -130,22 +130,15 @@ def main():
         if current_box[0] == end_box:
           searching = False
           while current_box[0].prior[0] != start_box:
-            print("entré")
             path.append(current_box[0].prior[0])
             current_box = current_box[0].prior
-            if current_box == None:
-              break
-          print("acabé")
-          for i in path:
-            print("(" + str(i.x) + ", " + str(i.y) + ")")
-        else:
-          for neighbour in current_box[0].neighbours:
-            tentative_g_score = current_box[0].g_score + 1
-            if tentative_g_score < neighbour.g_score and not neighbour.obstacle:
-              neighbour.prior = current_box
-              neighbour.g_score = tentative_g_score
-              neighbour.f_score = tentative_g_score + calculateH(neighbour, end_box)
-            if not neighbour in setObjects and not neighbour.obstacle:
+        for neighbour in current_box[0].neighbours:
+          tentative_g_score = current_box[0].g_score + 1
+          if tentative_g_score < neighbour.g_score:
+            neighbour.prior = current_box
+            neighbour.g_score = tentative_g_score
+            neighbour.f_score = tentative_g_score + calculateH(neighbour, end_box)
+            if not neighbour in queue:
               neighbour.queue = True
               neighbour.prior = current_box
               queue.append((neighbour, neighbour.f_score))
